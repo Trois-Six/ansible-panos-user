@@ -1,4 +1,4 @@
-# From an Ansible variable
+# Create users from an Ansible variable
 - name: Create PAN-OS user
   paloaltonetworks.panos.panos_config_element:
     provider: '{{ provider }}'
@@ -9,7 +9,7 @@
       </entry>     
   loop: "{{ users }}"
 
-# From a CSV file
+# Create users from a CSV file
 - name: Read CSV file
   community.general.read_csv:
     path: users.csv
@@ -25,4 +25,30 @@
         <phash>{{ item.value.password | password_hash('md5') }}</phash>
       </entry>     
   loop: "{{ reg_users_csv.dict | dict2items }}"
-  
+
+# Create users from an Ansible variable if users doesn't exist
+- name: Get facts
+  paloaltonetworks.panos.panos_facts:
+    provider: '{{ provider }}'
+    gather_subset: ['config']
+  register: reg_panos_facts
+
+- name: Read Users from facts
+  community.general.xml:
+    xmlstring: "{{ reg_panos_facts.ansible_facts.ansible_net_config | regex_replace('[\\r\\n\\t]+','') | regex_replace('\\\"', \"'\") }}"
+    xpath: "/config/shared/local-user-database/user/entry[@name='{{ item.username }}']/phash"
+    count: yes
+  loop: "{{ users }}"
+  ignore_errors: yes
+  register: reg_users_xml
+
+- name: Create PAN-OS user
+  paloaltonetworks.panos.panos_config_element:
+    provider: '{{ provider }}'
+    xpath: '/config/shared/local-user-database/user'
+    element: |
+      <entry name="{{ item.item.username }}">
+        <phash>{{ item.item.username | password_hash('md5') }}</phash>
+      </entry>
+  loop: "{{ reg_users_xml.results }}"
+  when: item.count == 0
