@@ -1,0 +1,28 @@
+# From an Ansible variable
+- name: Create PAN-OS user
+  paloaltonetworks.panos.panos_config_element:
+    provider: '{{ provider }}'
+    xpath: '/config/shared/local-user-database/user'
+    element: |
+      <entry name="{{ item.username }}">
+        <phash>{{ item.password | password_hash('md5') }}</phash>
+      </entry>     
+  loop: "{{ users }}"
+
+# From a CSV file
+- name: Read CSV file
+  community.general.read_csv:
+    path: users.csv
+    key: username
+  register: reg_users_csv
+
+- name: Create PAN-OS users
+  paloaltonetworks.panos.panos_config_element:
+    provider: '{{ provider }}'
+    xpath: '/config/shared/local-user-database/user'
+    element: |
+      <entry name="{{ item.value.username }}">
+        <phash>{{ item.value.password | password_hash('md5') }}</phash>
+      </entry>     
+  loop: "{{ reg_users_csv.dict | dict2items }}"
+  

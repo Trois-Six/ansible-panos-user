@@ -1,0 +1,18 @@
+all:
+  children:
+    localhost:
+      hosts:
+        127.0.0.1:
+          ansible_connection: local
+          provider:
+            ip_address: 192.168.0.1
+            username: admin
+            password: password
+          users:
+            - username: moi
+              password: "!@#QWE123"
+            - username: toi
+              password: "!@#QWE123"
+            - username: soi
+              password: "!@#QWE123"
+    ungrouped:
