@@ -1,7 +1,7 @@
 .PHONY: help all run check install
 .DEFAULT_GOAL := all
 
-REQUIRED_BINS := ansible-playbook pip ansible-galaxy
+REQUIRED_BINS := ansible-playbook pip ansible-galaxy ansible-lint
 $(foreach bin,$(REQUIRED_BINS),\
     $(if $(shell command -v $(bin) 2> /dev/null),,$(error Please install `$(bin)`)))
 
@@ -13,6 +13,7 @@ run: ## Launch playbook - create all
 	ansible-playbook -i inventory.yml site.yml
 
 check: ## Launch playbook - dry run
+	ansible-lint
 	ansible-playbook -i inventory.yml site.yml --check
 
 install:

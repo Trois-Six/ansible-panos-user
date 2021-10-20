@@ -3,4 +3,4 @@
   collections:
     - paloaltonetworks.panos
   roles:
-    - role: panos-users
+    - role: panos_users
